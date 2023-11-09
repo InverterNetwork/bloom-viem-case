@@ -1,0 +1,21 @@
+{
+  "name": "bloom-viem-case",
+  "version": "1.0.0",
+  "description": "Inverter implementation exemples and testing using viem",
+  "scripts": {
+    "test": "bun index.test.ts"
+  },
+  "keywords": [
+    "bun",
+    "viem",
+    "inverter"
+  ],
+  "author": "mguleryuz",
+  "license": "ISC",
+  "dependencies": {
+    "viem": "^1.18.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0"
+  }
+}
