@@ -5,6 +5,8 @@
     "target": "esnext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "composite": true,
@@ -17,6 +19,15 @@
     "allowJs": true,
     "types": [
       "bun-types" // add Bun global
-    ]
-  }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"] // add alias for src folder
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json" // add this line to include json files
+  ],
+  "exclude": ["node_modules"]
 }

@@ -2,9 +2,7 @@
   "name": "bloom-viem-case",
   "version": "1.0.0",
   "description": "Inverter implementation exemples and testing using viem",
-  "scripts": {
-    "test": "bun index.test.ts"
-  },
+  "scripts": {},
   "keywords": [
     "bun",
     "viem",
@@ -22,6 +20,6 @@
   "module": "index.ts",
   "type": "module",
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.4"
   }
 }
