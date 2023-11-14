@@ -15,6 +15,5 @@ export enum BountyManagerRoles {
 export type InitWorkflowProps = {
   publicClient: PublicClient;
   walletClient: WalletClient<Transport, Chain, Account>;
-  ERC20Address: `0x${string}`;
   orchestratorAddress: `0x${string}`;
 };

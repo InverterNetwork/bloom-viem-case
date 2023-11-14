@@ -14,7 +14,6 @@
     "viem": "^1.18.9"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
     "bun-types": "^1.0.11"
   },
   "module": "index.ts",

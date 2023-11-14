@@ -25,9 +25,6 @@
       "@/*": ["src/*"] // add alias for src folder
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.json" // add this line to include json files
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

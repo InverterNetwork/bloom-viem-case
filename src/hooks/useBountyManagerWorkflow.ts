@@ -5,23 +5,14 @@ import {
   ERC20Mock_ABI,
   BountyManager_ABI,
   TokenGatedRoleAuthorizer_ABI,
-} from "./lib";
-import { InitWorkflowProps, BountyManagerRoles } from "./lib/types/workflow";
+} from "@/lib";
+import { InitWorkflowProps, BountyManagerRoles } from "@/lib/types/workflow";
 
 const initBountyManagerWorkflow = async ({
   publicClient,
   walletClient,
-  ERC20Address,
   orchestratorAddress,
 }: InitWorkflowProps) => {
-  // Create initial contract instances
-  const ERC20MockContract = getContract({
-    address: ERC20Address,
-    abi: ERC20Mock_ABI,
-    publicClient,
-    walletClient,
-  });
-
   const orchestratorContract = getContract({
     address: orchestratorAddress,
     abi: Orchestrator_ABI,
@@ -70,6 +61,17 @@ const initBountyManagerWorkflow = async ({
     }),
   };
 
+  const tokenAddress =
+    await moduleContracts.fundingManagerContract.read.token();
+
+  // Create ERC20Mock contract / this is a mock contract for testing purposes
+  const ERC20MockContract = getContract({
+    address: tokenAddress,
+    abi: ERC20Mock_ABI,
+    publicClient,
+    walletClient,
+  });
+
   return {
     ...moduleAddresses,
     ...moduleContracts,
@@ -78,7 +80,7 @@ const initBountyManagerWorkflow = async ({
   };
 };
 
-const BountyManagerWorkflow = async (props: InitWorkflowProps) => {
+const useBountyManagerWorkflow = async (props: InitWorkflowProps) => {
   const {
     authorizerAddress,
     paymentProcessorAddress,
@@ -92,10 +94,8 @@ const BountyManagerWorkflow = async (props: InitWorkflowProps) => {
     bountyManagerContract,
   } = await initBountyManagerWorkflow(props);
 
-  // Addresses of the wallet client
-  const walletClientAddresses = await props.walletClient.getAddresses();
   // Read the ERC20Mock decimals
-  const ERC20MockDecimals = <number>await ERC20MockContract.read.decimals();
+  const ERC20MockDecimals = await ERC20MockContract.read.decimals();
 
   return {
     contractAddresses: {
@@ -104,33 +104,47 @@ const BountyManagerWorkflow = async (props: InitWorkflowProps) => {
       bountyManagerAddress,
       fundingManagerAddress,
     },
-    // Mint default ( 10 ) tokens to the first address in the wallet
-    mintMockERC20: (amount: number) =>
+
+    /**
+     * Mint x amount of tokens to the walletAddress
+     */
+    mintMockERC20: (walletAddress: `0x${string}`, amount: number) =>
       ERC20MockContract.write.mint([
-        walletClientAddresses[0],
+        walletAddress,
         parseUnits(String(amount), ERC20MockDecimals),
       ]),
 
-    // Approve the FundingManager contract to spend the ERC20Mock tokens default ( 10 )
-    approveFundingManager: (amount: number) =>
+    /**
+     * Approve the FundingManager contract to spend the ERC20Mock tokens
+     */
+    approveFundingManager: (
+      fundingManagerAddress: `0x${string}`,
+      amount: number
+    ) =>
       ERC20MockContract.write.approve([
         fundingManagerAddress,
         parseUnits(String(amount), ERC20MockDecimals),
       ]),
 
-    // Deposit ERC20Mock tokens into the FundingManager contract default ( 10 )
+    /**
+     * Deposit ERC20Mock tokens into the FundingManager contract
+     */
     depositFundingManager: (amount: number) =>
       fundingManagerContract.write.deposit([
         parseUnits(String(amount), ERC20MockDecimals),
       ]),
 
-    // Grant the BountyManager contract a role
+    /**
+     * Grant the BountyManager contract a role
+     */
     grantBountyManagerRole: (
-      role = BountyManagerRoles.BOUNTY_ADMIN_ROLE,
-      address = walletClientAddresses[0]
-    ) => bountyManagerContract.write.grantModuleRole([role, address]),
+      role: BountyManagerRoles,
+      walletAddress: `0x${string}`
+    ) => bountyManagerContract.write.grantModuleRole([role, walletAddress]),
 
-    // Add Bounty to the BountyManager contract
+    /**
+     * Add Bounty to the BountyManager contract
+     */
     addBounty: (amount: number) =>
       bountyManagerContract.write.addBounty([
         // Minimum Payout
@@ -141,24 +155,44 @@ const BountyManagerWorkflow = async (props: InitWorkflowProps) => {
         "0x0",
       ]),
 
-    // List Bounty ids
+    /**
+     * List Bounty ids
+     */
     listBounties: () => bountyManagerContract.read.listBountyIds(),
 
-    // Claim a bounty
-    addClaim: (bountyId: number, amount: number) =>
+    /**
+     * Claim a bounty
+     */
+    addClaim: (
+      walletAddress: `0x${string}`,
+      bountyId: bigint,
+      amount: number
+    ) =>
       bountyManagerContract.write.addClaim([
-        BigInt(bountyId),
+        bountyId,
         // This is an array of tuples, each tuple is a claim address and amount
         // used for shared bounty claims
         [
           {
-            addr: walletClientAddresses[0],
+            addr: walletAddress,
             claimAmount: parseUnits(String(amount), ERC20MockDecimals),
           },
         ],
+        // Details
         "0x0",
       ]),
+
+    /**
+     * List Claim ids
+     */
+    listClaims: () => bountyManagerContract.read.listClaimIds(),
+
+    /**
+     * Verify a claim
+     */
+    verifyClaim: (claimId: bigint, bountyId: bigint) =>
+      bountyManagerContract.write.verifyClaim([claimId, bountyId]),
   };
 };
 
-export default BountyManagerWorkflow;
+export default useBountyManagerWorkflow;
